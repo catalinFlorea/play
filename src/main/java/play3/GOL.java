@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /*
-I was bored I tried to implement a Conway's Game of Life
-for the first time in my life.
 consider the following diagram
 grid[i - 1][j - 1] . grid[i - 1][j] .  grid[i - 1][j + 1]
 grid[i][j - 1]     .       x        .  grid[i][j + 1]
@@ -40,40 +38,21 @@ public class GOL {
 			printGrid(grid);
 			System.out.println("Gen " + (gen++) + "");
 
-			String[][] superGrid = copyGrid(grid);
+			String[][] nextGenerationGrid = copyGrid(grid);
 
 			for (int i = 0; i < grid.length; i++) {
 				for (int j = 0; j < grid[i].length; j++) {
 					// System.out.println(grid[i][j] + " " + i + ":" + j);
 
-					int life_forms = 0;
+					int livingNeighbors = getLivingNeighborsOfCell(grid, i, j);
 
-					ArrayList<String> neighbors = new ArrayList<String>();
-
-					// find the neighbor cells to the current one.
-					// the grid closes in itself due to the modulus operator
-					neighbors.add(grid[Math.floorMod(i - 1, grid.length)][Math.floorMod(j - 1, grid[i].length)]);
-					neighbors.add(grid[Math.floorMod(i - 1, grid.length)][j]);
-					neighbors.add(grid[Math.floorMod(i - 1, grid.length)][Math.floorMod(j + 1, grid[i].length)]);
-					neighbors.add(grid[i][Math.floorMod(j - 1, grid[i].length)]);
-					neighbors.add(grid[i][Math.floorMod(j + 1, grid[i].length)]);
-					neighbors.add(grid[Math.floorMod(i + 1, grid.length)][Math.floorMod(j - 1, grid[i].length)]);
-					neighbors.add(grid[Math.floorMod(i + 1, grid.length)][j]);
-					neighbors.add(grid[Math.floorMod(i + 1, grid.length)][Math.floorMod(j + 1, grid[i].length)]);
-
-					for (int k = 0; k < neighbors.size(); k++)
-						if (neighbors.get(k).compareTo(LIFE) == 0)
-							life_forms += 1;
-
-					if (grid[i][j].compareTo(DEATH) == 0) {
-						// check if I can spawn a new cell
-						if (life_forms == 3) {
-							superGrid[i][j] = LIFE;
+					if (grid[i][j].equals(DEATH)) {
+						if (livingNeighbors == 3) {
+							nextGenerationGrid[i][j] = LIFE;
 						}
-					} else { // else current cell lives
-						// check if cell must die of over-population or under-population
-						if (life_forms < 2 || life_forms > 3) {
-							superGrid[i][j] = DEATH;
+					} else {
+						if (livingNeighbors < 2 || livingNeighbors > 3) {
+							nextGenerationGrid[i][j] = DEATH;
 						}
 					}
 				}
@@ -81,15 +60,37 @@ public class GOL {
 
 			// copy grid with new generations to the one
 			// previously created
-			grid = copyGrid(superGrid);
+			grid = copyGrid(nextGenerationGrid);
 
 			// wait 200 milliseconds before repeating the loop
 			try {
-				Thread.sleep(100);
+				Thread.sleep(200);
 			} catch (InterruptedException ex) {
 				Thread.currentThread().interrupt();
 			}
 		}
+	}
+
+	private static int getLivingNeighborsOfCell(String[][] grid, int i, int j) {
+		int livingNeighbors = 0;
+		ArrayList<String> neighbors = new ArrayList<String>();
+
+		// find the neighbor cells to the current one.
+		// the grid closes in itself due to the modulus operator
+		neighbors.add(grid[Math.floorMod(i - 1, grid.length)][Math.floorMod(j - 1, grid[i].length)]);
+		neighbors.add(grid[Math.floorMod(i - 1, grid.length)][j]);
+		neighbors.add(grid[Math.floorMod(i - 1, grid.length)][Math.floorMod(j + 1, grid[i].length)]);
+		neighbors.add(grid[i][Math.floorMod(j - 1, grid[i].length)]);
+		neighbors.add(grid[i][Math.floorMod(j + 1, grid[i].length)]);
+		neighbors.add(grid[Math.floorMod(i + 1, grid.length)][Math.floorMod(j - 1, grid[i].length)]);
+		neighbors.add(grid[Math.floorMod(i + 1, grid.length)][j]);
+		neighbors.add(grid[Math.floorMod(i + 1, grid.length)][Math.floorMod(j + 1, grid[i].length)]);
+
+		for (String neighbor : neighbors) {
+			if (neighbor.equals(LIFE))
+				livingNeighbors += 1;
+		}
+		return livingNeighbors;
 	}
 
 	private static String[][] copyGrid(String[][] grid) {
